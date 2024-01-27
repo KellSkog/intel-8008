@@ -1,3 +1,6 @@
+/*
+* The emulator drives the CPU 
+* */
 #include <iostream>
 
 #include "scelbi.hpp"

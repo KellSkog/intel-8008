@@ -2,6 +2,7 @@
  * status flags (carry, zero, sign, parity)
  * The instruction decoding uses a sparse array of functionpointers to the microcode functions.
  * CPU::process calls the microcode by lookup _inst[op](op);
+ * The CPU shall output the PC and control signals, the
 */
 #include "array"
 #include <cstdint>
@@ -42,6 +43,16 @@ using Decode = std::array<std::function<void(uint8_t op)>, 256>;
  * Mem - 7 
 */
 namespace detail {
+    
+}
+class CPU {
+    public:
+    CPU();
+    /* Process shall put PC on adr bus, Read instruction at that adr, decode insr,
+    *  read remaining data, execute instr, update flags, update PC */
+    void process();
+    void reset();
+
     struct Status{
         bool carry;
         bool zero;
@@ -55,10 +66,10 @@ namespace detail {
         REGISTER H : 8;
         }bytes;
     };
-}
-class CPU {
-    public:
-    CPU();
-    void process(uint8_t op);
-    void reset();
+    REGISTER A, B, C, D, E; // A is Acc
+    uint16_t programcounter = 0;
+    uint8_t stackIndex = 0;
+    STACK Stack;
+    Status status;
+    Adr adr;
 };

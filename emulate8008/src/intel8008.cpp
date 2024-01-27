@@ -1,56 +1,44 @@
 #include "intel8008.hpp"
+#include "instructions.hpp"
 
     namespace detail {
-    REGISTER A, B, C, D, E; // A is Acc
-    uint16_t programcounter = 0;
-    uint8_t stackIndex = 0;
-    STACK Stack;
-    Status status;
-    Adr adr;
-    std::function<void(uint8_t op)> LAA = []([[maybe_unused]]uint8_t op){A = A; ++programcounter;}; // 192
+        // Each position corresponds to an opcode and holds an index into executor
+        // decoder is a sparse array with all possible 8 bit opcodes
+        std::array<uint8_t, 0x100> decoder { 
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, // 0 - 0x0F
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, // 0x10 -
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, // 0x50 -
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, // 0xA0 -
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        };
+        constexpr std::size_t NumberOfOpCodes = 150;
+        // Each position holds a pointer to a function for each op code in lexical order
+        // executor is a dense array
+        std::array<std::function<void (CPU *)>, NumberOfOpCodes> executor {
 
-    Decode inst{nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,// 0*8*8=0,,7
-                nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,
-                nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,
-                nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,
-                nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,
-                nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,
-                nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,
-                nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr, // (1*8-1)*8=56,,63
+        };
+    
 
-                nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr, // 1*8*8=64,,71
-                nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,
-                nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,
-                nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,
-                nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,
-                nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,
-                nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,
-                nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr, // (2*8-1)*8=120,,127
-
-                nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr, // 2*8*8=128,,135
-                nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,
-                nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,
-                nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,
-                nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,
-                nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,
-                nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,
-                nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr, // (3*8-1)*8=184,,191
-
-                detail::LAA,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr, // 3*8*8=192,,197
-                nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,
-                nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,
-                nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,
-                nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,
-                nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,
-                nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,
-                nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,}; // (4*8-1)*8=248,,255
 }
     
     CPU::CPU() {
-        detail::status.parity = false;
+        status.parity = false;
     }
-    void CPU::process(uint8_t op) {
-        detail::inst[op](op);
+    void CPU::process() {
+        auto index = detail::decoder[IR];
+        auto instr = detail::executor[index];
+        instr(this);
     }
     void CPU::reset() {
 
